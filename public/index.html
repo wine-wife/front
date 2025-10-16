@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OTT 구독 관리 - 넷플릭스 스타일</title>
+<style>
+body { font-family: 'Segoe UI', sans-serif; margin:0; padding:0; background:#141414; color:white; transition:0.3s; }
+header { background:#E50914; color:white; text-align:center; padding:20px; font-size:1.8em; font-weight:bold; position:relative; }
+header button { position:absolute; right:20px; top:20px; padding:6px 12px; border:none; border-radius:6px; cursor:pointer; background:#fff; color:#E50914; font-weight:bold; transition:0.2s; }
+header button:hover { background:#ddd; }
+main { max-width:1200px; margin:20px auto; padding:0 15px; }
+section { margin-bottom:40px; }
+h2 { border-left:6px solid #E50914; padding-left:10px; color:white; margin-bottom:15px; }
+.tabs { display:flex; gap:15px; margin-bottom:15px; flex-wrap:wrap; }
+.tab-btn { padding:8px 15px; border:none; border-radius:6px; cursor:pointer; background:#333; color:white; transition:0.2s; font-weight:bold; }
+.tab-btn.active { background:#E50914; color:white; }
+.cards { display:flex; flex-wrap:wrap; gap:15px; }
+.card { background:#1e1e1e; border-radius:12px; padding:15px; flex:1 1 250px; box-shadow:0 6px 20px rgba(0,0,0,0.6); transition:0.2s; display:flex; flex-direction:column; cursor:pointer; }
+.card:hover { transform:translateY(-5px); box-shadow:0 8px 24px rgba(0,0,0,0.8); }
+.card img { width:100%; height:100px; object-fit:contain; margin-bottom:10px; }
+.card h3 { margin:0 0 10px 0; color:white; font-size:1.1em; }
+.card button { background:#E50914; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; margin-top:5px; font-weight:bold; transition:0.2s; }
+.card button:hover { background:#B00610; }
+.plan-desc { font-size:12px; color:#bbb; margin-top:2px; }
+.subscription, .unused-card { display:flex; justify-content:space-between; align-items:center; padding:10px; background:#1e1e1e; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.6); flex:1 1 200px; margin-bottom:8px; }
+.subscription:hover, .unused-card:hover { background:#2a2a2a; }
+.unused-card { background:#2a1e1e; }
+.delete-btn { background:#B00610; color:white; border:none; border-radius:6px; padding:5px 10px; cursor:pointer; transition:0.2s; }
+.delete-btn:hover { background:#E50914; }
+.total { text-align:right; font-size:1.2em; font-weight:bold; margin-top:10px; }
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:1000; }
+.modal-content { background:#1e1e1e; padding:20px; border-radius:12px; max-width:400px; width:90%; position:relative; display:flex; flex-direction:column; gap:10px; box-shadow:0 8px 24px rgba(0,0,0,0.8); }
+.modal-close { position:absolute; top:10px; right:10px; cursor:pointer; font-weight:bold; color:#fff; font-size:1.2em; }
+#modalLogo { width:120px; margin:0 auto; display:block; margin-bottom:10px; }
+#history { margin-top:20px; }
+#history h3 { margin-bottom:10px; }
+#history ul { padding-left:20px; }
+input { padding:6px 10px; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:white; width:100%; margin-bottom:10px; }
+input::placeholder { color:#bbb; }
+body.light { background:#f2f3f5; color:#333; }
+body.light .card, body.light .subscription, body.light .unused-card, body.light .modal-content { background:white; color:#333; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+body.light header { background:#E50914; color:white; }
+body.light .tab-btn { background:#ddd; color:#333; }
+body.light .tab-btn.active { background:#E50914; color:white; }
+body.light header button { background:#E50914; color:white; }
+body.light .card button { background:#E50914; color:white; }
+body.light .card button:hover { background:#B00610; }
+</style>
+</head>
+<body>
+<header>
+  OTT 구독 관리
+  <button onclick="toggleTheme()">🌙 테마</button>
+</header>
+<main>
+  <section>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="all" onclick="switchTab('all')">전체 OTT</button>
+      <button class="tab-btn" data-tab="my" onclick="switchTab('my')">내 구독</button>
+      <button class="tab-btn" data-tab="unused" onclick="switchTab('unused')">사용하지 않는 OTT</button>
+      <button class="tab-btn" data-tab="recommend" onclick="switchTab('recommend')">추천 요금제</button>
+    </div>
+    <input type="text" id="searchInput" placeholder="OTT 이름 검색..." onkeyup="filterServices()">
+    <div id="allServices" class="cards"></div>
+    <div id="mySubscriptions" class="cards" style="display:none;"></div>
+    <div id="unusedServices" class="cards" style="display:none;"></div>
+    <div id="recommendServices" class="cards" style="display:none;"></div>
+    <p class="total">총 금액: <span id="totalPrice">0</span>원</p>
+    <p class="total">사용하지 않는 OTT 합계: <span id="unusedTotal">0</span>원</p>
+    <div id="history">
+      <h3>최근 기록</h3>
+      <ul id="historyList"></ul>
+    </div>
+  </section>
+</main>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closeModal()">✖</span>
+    <img id="modalLogo" src="" alt="OTT Logo">
+    <h3 id="modalTitle"></h3>
+    <p id="modalDesc"></p>
+    <p id="modalPrice" style="font-weight:bold;"></p>
+    <button id="modalAddBtn">장바구니 추가</button>
+  </div>
+</div>
+
+<script>
+// CDN 로고 사용 (퍼블릭 폴더 없어도 됨)
+const ottLogos = {
+  "Netflix": "https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg",
+  "Disney+": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg",
+  "Wavve": "logos/wavve.svg",
+  "Watcha": "logos/Watcha.svg",
+  "AppleTV+": "logos/Apple.svg",
+  "Amazon Prime": "logos/Amazon Prime.png"
+};
+
+const allServices = [
+  { service_name: "Netflix", plans: [ {plan_id:1, plan_name:"Basic", price:"10000"}, {plan_id:2, plan_name:"Standard", price:"13000"}, {plan_id:3, plan_name:"Premium", price:"17000"} ] },
+  { service_name: "Disney+", plans:[ {plan_id:4, plan_name:"Standard", price:"9000"} ] },
+  { service_name: "Wavve", plans:[ {plan_id:5, plan_name:"Basic", price:"7500"}, {plan_id:6, plan_name:"Premium", price:"11000"} ] },
+  { service_name: "Watcha", plans:[ {plan_id:7, plan_name:"Standard", price:"7900"} ] },
+  { service_name: "AppleTV+", plans:[ {plan_id:8, plan_name:"Standard", price:"6500"} ] },
+  { service_name: "Amazon Prime", plans:[ {plan_id:9, plan_name:"Standard", price:"4900"} ] }
+];
+
+const planDescriptions = {
+  1:"Basic: SD 화질, 1명 동시 시청 가능",
+  2:"Standard: Full HD, 2명 동시 시청 가능",
+  3:"Premium: 4K, 4명 동시 시청 가능",
+  4:"Disney+ Standard: Full HD, 2명 동시 시청 가능",
+  5:"Wavve Basic: SD, 1명 동시 시청 가능",
+  6:"Wavve Premium: Full HD, 2명 동시 시청 가능",
+  7:"Watcha Standard: HD, 1명 동시 시청 가능",
+  8:"AppleTV+ Standard: Full HD, 1명 동시 시청 가능",
+  9:"Amazon Prime Standard: Full HD, 2명 동시 시청 가능"
+};
+
+let subscriptions=[], history=[];
+
+// 렌더링 함수
+function renderServices(services){
+  const container=document.getElementById("allServices"); container.innerHTML="";
+  services.forEach(s=>{
+    const card=document.createElement("div"); card.className="card";
+    const img=document.createElement("img"); img.src=ottLogos[s.service_name]; card.appendChild(img);
+    const title=document.createElement("h3"); title.textContent=s.service_name; card.appendChild(title);
+    s.plans.forEach(p=>{
+      const btn=document.createElement("button");
+      btn.textContent=`${p.plan_name} (${Number(p.price).toLocaleString()}원)`;
+      btn.onclick=()=>openModal(s.service_name,p.plan_name,Number(p.price),p.plan_id);
+      card.appendChild(btn);
+      const desc=document.createElement("div"); desc.className="plan-desc"; desc.textContent=planDescriptions[p.plan_id];
+      card.appendChild(desc);
+    });
+    container.appendChild(card);
+  });
+}
+
+// 구독 추가/삭제
+function addSubscription(plan_id, service, plan, price){
+  subscriptions.push({subscription_id:Date.now(), service_name:service, plan_name:plan, price:price});
+  history.unshift(`추가: ${service} - ${plan} (${price.toLocaleString()}원)`); if(history.length>10) history.pop();
+  updateHistory(); renderSubscriptions(); renderUnused(); renderRecommend();
+}
+
+function deleteSubscription(id){
+  const sub = subscriptions.find(s=>s.subscription_id===id);
+  if(sub) { history.unshift(`삭제: ${sub.service_name} - ${sub.plan_name} (${Number(sub.price).toLocaleString()}원)`); subscriptions=subscriptions.filter(s=>s.subscription_id!==id); }
+  if(history.length>10) history.pop();
+  updateHistory(); renderSubscriptions(); renderUnused(); renderRecommend();
+}
+
+// 렌더링 구독
+function renderSubscriptions(){
+  const container=document.getElementById("mySubscriptions"); container.innerHTML="";
+  let total=0;
+  subscriptions.forEach(s=>{
+    total+=Number(s.price);
+    const div=document.createElement("div"); div.className="subscription";
+    div.textContent=`${s.service_name} - ${s.plan_name} (${Number(s.price).toLocaleString()}원)`;
+    const del=document.createElement("button"); del.className="delete-btn"; del.textContent="삭제"; del.onclick=()=>deleteSubscription(s.subscription_id);
+    div.appendChild(del);
+    container.appendChild(div);
+  });
+  document.getElementById("totalPrice").textContent=total.toLocaleString();
+}
+
+// 사용하지 않는 OTT
+function renderUnused(){
+  const container=document.getElementById("unusedServices"); container.innerHTML="";
+  let total=0;
+  allServices.forEach(s=>{
+    s.plans.forEach(p=>{
+      const isUsed = subscriptions.some(sub=>sub.service_name===s.service_name && sub.plan_name===p.plan_name);
+      if(!isUsed){
+        total+=Number(p.price);
+        const div=document.createElement("div"); div.className="unused-card";
+        div.textContent=`${s.service_name} - ${p.plan_name} (${Number(p.price).toLocaleString()}원)`;
+        container.appendChild(div);
+      }
+    });
+  });
+  document.getElementById("unusedTotal").textContent=total.toLocaleString();
+}
+
+// 추천 (임시: 맨 처음 3개)
+function renderRecommend(){
+  const container=document.getElementById("recommendServices"); container.innerHTML="";
+  allServices.slice(0,3).forEach(s=>{
+    const card=document.createElement("div"); card.className="card";
+    const img=document.createElement("img"); img.src=ottLogos[s.service_name]; card.appendChild(img);
+    const title=document.createElement("h3"); title.textContent=`추천: ${s.service_name}`; card.appendChild(title);
+    container.appendChild(card);
+  });
+}
+
+// 모달
+function openModal(service, plan, price, plan_id){
+  document.getElementById("modalTitle").textContent=`${service} - ${plan}`;
+  document.getElementById("modalDesc").textContent=planDescriptions[plan_id];
+  document.getElementById("modalPrice").textContent=`가격: ${price.toLocaleString()}원`;
+  document.getElementById("modalLogo").src=ottLogos[service];
+  document.getElementById("modal").style.display="flex";
+  document.getElementById("modalAddBtn").onclick=()=>{ addSubscription(plan_id, service, plan, price); closeModal(); };
+}
+function closeModal(){ document.getElementById("modal").style.display="none"; }
+function switchTab(tab){
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add("active");
+  document.getElementById("allServices").style.display=tab==="all"?"flex":"none";
+  document.getElementById("mySubscriptions").style.display=tab==="my"?"flex":"none";
+  document.getElementById("unusedServices").style.display=tab==="unused"?"flex":"none";
+  document.getElementById("recommendServices").style.display=tab==="recommend"?"flex":"none";
+}
+function filterServices(){
+  const q=document.getElementById("searchInput").value.toLowerCase();
+  renderServices(allServices.filter(s=>s.service_name.toLowerCase().includes(q)));
+}
+function toggleTheme(){ document.body.classList.toggle("light"); }
+function updateHistory(){
+  const ul=document.getElementById("historyList"); ul.innerHTML="";
+  history.forEach(h=>{ const li=document.createElement("li"); li.textContent=h; ul.appendChild(li); });
+}
+
+// 초기 렌더링
+renderServices(allServices);
+renderSubscriptions();
+renderUnused();
+renderRecommend();
+</script>
+</body>
+</html>
