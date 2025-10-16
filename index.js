@@ -16,7 +16,7 @@ const pool = mysql.createPool({
   database: "ott_project",
 });
 
-// 1️⃣ 전체 OTT + 요금제 조회
+// 전체 OTT + 요금제 조회
 app.get("/services", async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -57,7 +57,7 @@ app.get("/services", async (req, res) => {
   }
 });
 
-// 2️⃣ 내 구독 목록 + 총합 계산
+// 내 구독 목록 + 총합 계산
 app.get("/subscriptions", async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -84,7 +84,7 @@ app.get("/subscriptions", async (req, res) => {
   }
 });
 
-// 3️⃣ 구독 추가
+// 구독 추가
 app.post("/subscriptions", async (req, res) => {
   const { plan_id } = req.body;
 
@@ -125,7 +125,7 @@ app.post("/subscriptions", async (req, res) => {
   }
 });
 
-// 4️⃣ 구독 삭제
+// 구독 삭제
 app.delete("/subscriptions/:id", async (req, res) => {
   const subscriptionId = req.params.id;
 
@@ -157,7 +157,7 @@ app.delete("/subscriptions/:id", async (req, res) => {
   }
 });
 
-// 5️⃣ 사용하지 않는 OTT 조회
+// 사용하지 않는 OTT 조회
 app.get("/analysis/unused", async (req, res) => {
   try {
     const [rows] = await pool.query(`

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OTT 구독 관리 - 넷플릭스 스타일</title>
+<title>OTT 구독 관리</title>
 <style>
 body { font-family: 'Segoe UI', sans-serif; margin:0; padding:0; background:#141414; color:white; transition:0.3s; }
 header { background:#E50914; color:white; text-align:center; padding:20px; font-size:1.8em; font-weight:bold; position:relative; }
@@ -61,7 +61,6 @@ body.light .card button:hover { background:#B00610; }
       <button class="tab-btn active" data-tab="all" onclick="switchTab('all')">전체 OTT</button>
       <button class="tab-btn" data-tab="my" onclick="switchTab('my')">내 구독</button>
       <button class="tab-btn" data-tab="unused" onclick="switchTab('unused')">사용하지 않는 OTT</button>
-      <button class="tab-btn" data-tab="recommend" onclick="switchTab('recommend')">추천 요금제</button>
     </div>
     <input type="text" id="searchInput" placeholder="OTT 이름 검색..." onkeyup="filterServices()">
     <div id="allServices" class="cards"></div>
@@ -100,24 +99,27 @@ const ottLogos = {
 };
 
 const allServices = [
-  { service_name: "Netflix", plans: [ {plan_id:1, plan_name:"Basic", price:"10000"}, {plan_id:2, plan_name:"Standard", price:"13000"}, {plan_id:3, plan_name:"Premium", price:"17000"} ] },
-  { service_name: "Disney+", plans:[ {plan_id:4, plan_name:"Standard", price:"9000"} ] },
-  { service_name: "Wavve", plans:[ {plan_id:5, plan_name:"Basic", price:"7500"}, {plan_id:6, plan_name:"Premium", price:"11000"} ] },
-  { service_name: "Watcha", plans:[ {plan_id:7, plan_name:"Standard", price:"7900"} ] },
+  { service_name: "Netflix", plans: [ {plan_id:1, plan_name:"Basic", price:"7000"}, {plan_id:2, plan_name:"Standard", price:"13500"}, {plan_id:3, plan_name:"Premium", price:"17000"} ] },
+  { service_name: "Disney+", plans:[ {plan_id:4, plan_name:"Standard", price:"9900"},{plan_id:10, plan_name:"Premium", price:"13900"} ] },
+  { service_name: "Wavve", plans:[ {plan_id:5, plan_name:"Basic", price:"7900"}, {plan_id:6, plan_name:"Premium", price:"13900"},{plan_id:11, plan_name:"Standard", price:"10900"} ] },
+  { service_name: "Watcha", plans:[ {plan_id:7, plan_name:"Basic", price:"7900"},{plan_id:12, plan_name:"Premium", price:"12900"} ] },
   { service_name: "AppleTV+", plans:[ {plan_id:8, plan_name:"Standard", price:"6500"} ] },
-  { service_name: "Amazon Prime", plans:[ {plan_id:9, plan_name:"Standard", price:"4900"} ] }
+  { service_name: "Amazon Prime", plans:[ {plan_id:9, plan_name:"Standard", price:"21000"} ] }
 ];
 
 const planDescriptions = {
   1:"Basic: SD 화질, 1명 동시 시청 가능",
-  2:"Standard: Full HD, 2명 동시 시청 가능",
+  2:"Standard: FHD, 2명 동시 시청 가능",
   3:"Premium: 4K, 4명 동시 시청 가능",
-  4:"Disney+ Standard: Full HD, 2명 동시 시청 가능",
+  4:"Disney+ Standard: FHD, 2명 동시 시청 가능",
   5:"Wavve Basic: SD, 1명 동시 시청 가능",
-  6:"Wavve Premium: Full HD, 2명 동시 시청 가능",
-  7:"Watcha Standard: HD, 1명 동시 시청 가능",
-  8:"AppleTV+ Standard: Full HD, 1명 동시 시청 가능",
-  9:"Amazon Prime Standard: Full HD, 2명 동시 시청 가능"
+  6:"Wavve Premium: FHD, 4명 동시 시청 가능",
+  7:"Watcha Standard: FHD, 1명 동시 시청 가능",
+  8:"AppleTV+ Standard: FHD, 1명 동시 시청 가능",
+  9:"Amazon Prime Standard: FHD, 2명 동시 시청 가능",
+  10:"Disney+ Premium: 4K UHD, 4명 동시 시청 가능",
+  11:"Wavve Standard: FHD, 2명 동시 시청 가능 ",
+  12:"Watcha Premium: 4K UHD, 4명 동시 시청 가능"
 };
 
 let subscriptions=[], history=[];
@@ -189,15 +191,6 @@ function renderUnused(){
 }
 
 // 추천 (임시: 맨 처음 3개)
-function renderRecommend(){
-  const container=document.getElementById("recommendServices"); container.innerHTML="";
-  allServices.slice(0,3).forEach(s=>{
-    const card=document.createElement("div"); card.className="card";
-    const img=document.createElement("img"); img.src=ottLogos[s.service_name]; card.appendChild(img);
-    const title=document.createElement("h3"); title.textContent=`추천: ${s.service_name}`; card.appendChild(title);
-    container.appendChild(card);
-  });
-}
 
 // 모달
 function openModal(service, plan, price, plan_id){
@@ -231,7 +224,6 @@ function updateHistory(){
 renderServices(allServices);
 renderSubscriptions();
 renderUnused();
-renderRecommend();
 </script>
 </body>
 </html>
