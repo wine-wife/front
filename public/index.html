@@ -32,6 +32,8 @@ h2 { border-left:6px solid #E50914; padding-left:10px; color:white; margin-botto
 .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:1000; }
 .modal-content { background:#1e1e1e; padding:20px; border-radius:12px; max-width:400px; width:90%; position:relative; display:flex; flex-direction:column; gap:10px; box-shadow:0 8px 24px rgba(0,0,0,0.8); }
 .modal-close { position:absolute; top:10px; right:10px; cursor:pointer; font-weight:bold; color:#fff; font-size:1.2em; }
+#modalAddBtn { background:#E50914; color:white; border:none; border-radius:6px; padding:5px 10px; cursor:pointer; transition:0.2s; }
+#modalAddBtn:hover { background:#B00610; color:white; border:none; border-radius:6px; padding:5px 10px; cursor:pointer; transition:0.2s; }
 #modalLogo { width:120px; margin:0 auto; display:block; margin-bottom:10px; }
 #history { margin-top:20px; }
 #history h3 { margin-bottom:10px; }
@@ -82,7 +84,7 @@ body.light .card button:hover { background:#B00610; }
     <h3 id="modalTitle"></h3>
     <p id="modalDesc"></p>
     <p id="modalPrice" style="font-weight:bold;"></p>
-    <button id="modalAddBtn">장바구니 추가</button>
+    <button id="modalAddBtn">내 구독에 추가</button>
   </div>
 </div>
 
